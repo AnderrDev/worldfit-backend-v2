@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16
+    container_name: worldfit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: worldfit
+    ports:
+      # Host 5433 -> contenedor 5432. Se usa 5433 para no chocar con un
+      # PostgreSQL instalado localmente (comun en Mac) que ya ocupa el 5432.
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Scripts que se ejecutan solo la primera vez que se crea el volumen.
+      - ./docker/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d worldfit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
