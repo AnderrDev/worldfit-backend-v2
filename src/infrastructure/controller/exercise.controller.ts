@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ExerciseApplication } from '../../application/exercise.application';
 import { validateExerciseData } from '../util/exercise-validation';
 import { validateExerciseUpdate } from '../util/exercise-update-validation';
+import { BusinessError } from '../../shared/business-error';
 
 export class ExerciseController {
   private app: ExerciseApplication;
@@ -19,8 +20,8 @@ export class ExerciseController {
       const exerciseId = await this.app.createExercise(value as any);
       return res.status(201).json({ message: 'Ejercicio creado con exito', exerciseId });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(500).json({ message: error.message });
+      if (error instanceof BusinessError) {
+        return res.status(error.status).json({ message: error.message });
       }
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
@@ -67,6 +68,9 @@ export class ExerciseController {
       }
       return res.status(200).json({ message: 'Ejercicio actualizado correctamente' });
     } catch (error) {
+      if (error instanceof BusinessError) {
+        return res.status(error.status).json({ message: error.message });
+      }
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
@@ -83,6 +87,9 @@ export class ExerciseController {
       }
       return res.status(200).json({ message: 'Ejercicio dado de baja' });
     } catch (error) {
+      if (error instanceof BusinessError) {
+        return res.status(error.status).json({ message: error.message });
+      }
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
