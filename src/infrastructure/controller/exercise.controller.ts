@@ -93,4 +93,20 @@ export class ExerciseController {
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+
+  async getExercisesByMuscle(req: Request, res: Response): Promise<Response> {
+    try {
+      const { muscle } = req.query;
+      if (!muscle || typeof muscle !== 'string') {
+        return res.status(400).json({ message: 'Parametro muscle requerido' });
+      }
+      const exercises = await this.app.getAllExercises();
+      const filtered = (exercises as any[]).filter((e) =>
+        e.muscleGroup?.toLowerCase().includes(muscle.toLowerCase())
+      );
+      return res.status(200).json(filtered);
+    } catch (error) {
+      return res.status(500).json({ message: 'Error en la consulta de datos' });
+    }
+  }
 }
