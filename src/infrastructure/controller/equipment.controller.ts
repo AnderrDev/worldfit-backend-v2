@@ -62,7 +62,10 @@ export class EquipmentController {
       if (error) {
         return res.status(400).json({ message: error.message });
       }
-      await this.app.updateEquipment(id, value);
+      const updated = await this.app.updateEquipment(id, value);
+      if (!updated) {
+        return res.status(404).json({ message: 'Equipamiento no encontrado' });
+      }
       return res.status(200).json({ message: 'Equipamiento actualizado correctamente' });
     } catch (error) {
       if (error instanceof BusinessError) {
