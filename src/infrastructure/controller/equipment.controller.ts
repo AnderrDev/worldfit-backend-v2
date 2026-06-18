@@ -90,4 +90,20 @@ export class EquipmentController {
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
   }
+
+  async searchEquipment(req: Request, res: Response): Promise<Response> {
+    try {
+      const { name } = req.query;
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ message: 'Parametro name requerido' });
+      }
+      const equipment = await this.app.getAllEquipment();
+      const filtered = (equipment as any[]).filter((e) =>
+        e.name?.toLowerCase().includes(name.toLowerCase())
+      );
+      return res.status(200).json(filtered);
+    } catch (error) {
+      return res.status(500).json({ message: 'Error en la consulta de datos' });
+    }
+  }
 }
