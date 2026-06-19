@@ -78,6 +78,10 @@ export class GoalController {
       if (isNaN(id)) {
         return res.status(400).json({ message: 'ID invalido' });
       }
+      const goal = await this.app.getGoalById(id);
+      if (!goal) {
+        return res.status(404).json({ message: 'Objetivo no encontrado' });
+      }
       await this.app.deleteGoal(id);
       return res.status(200).json({ message: 'Objetivo dado de baja' });
     } catch (error) {
