@@ -52,6 +52,20 @@ export class GoalController {
     }
   }
 
+  async getGoalsByUserId(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = Number(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID de usuario invalido' });
+      }
+      const goals = await this.app.getAllGoals();
+      const filtered = (goals as any[]).filter((g) => g.userId === userId);
+      return res.status(200).json(filtered);
+    } catch (error) {
+      return res.status(500).json({ message: 'Error en la consulta de datos' });
+    }
+  }
+
   async updateGoal(req: Request, res: Response): Promise<Response> {
     try {
       const id = Number(req.params.id);
