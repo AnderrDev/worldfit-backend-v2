@@ -1,0 +1,422 @@
+{
+  "info": {
+    "name": "WorldFit API",
+    "_postman_id": "worldfit-collection-0001",
+    "description": "Coleccion de pruebas de la API WorldFit (Node + Express + TypeORM + PostgreSQL).\n\nUso:\n1. Asegurate de tener la API corriendo (npm run dev) y el seed cargado.\n2. Ejecuta 'Auth > Login Admin' y 'Auth > Login Demo': guardan los tokens solos.\n3. Prueba el resto de carpetas. Las peticiones de gestion usan {{adminToken}}; las de consulta y el flujo de aprobacion usan {{userToken}}.\n\nVariables:\n- baseUrl: http://localhost:4000/api\n- adminToken / userToken: se rellenan al hacer login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/api/v1" },
+    { "key": "adminToken", "value": "" },
+    { "key": "userToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Infra",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (publico)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nuevo Usuario\",\n  \"email\": \"nuevo@worldfit.com\",\n  \"password\": \"Nuevo123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.token) {",
+                  "  pm.collectionVariables.set('adminToken', json.token);",
+                  "  console.log('adminToken guardado');",
+                  "}",
+                  "pm.test('Login admin 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@worldfit.com\",\n  \"password\": \"Admin123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/login", "host": ["{{baseUrl}}"], "path": ["login"] }
+          }
+        },
+        {
+          "name": "Login Demo (usuario)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.token) {",
+                  "  pm.collectionVariables.set('userToken', json.token);",
+                  "  console.log('userToken guardado');",
+                  "}",
+                  "pm.test('Login demo 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"demo@worldfit.com\",\n  \"password\": \"Demo123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/login", "host": ["{{baseUrl}}"], "path": ["login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (CRUD)",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Obtener usuario por id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/1", "host": ["{{baseUrl}}"], "path": ["users", "1"] }
+          }
+        },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Usuario Demo Editado\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/2", "host": ["{{baseUrl}}"], "path": ["users", "2"] }
+          }
+        },
+        {
+          "name": "Eliminar usuario (baja logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/3", "host": ["{{baseUrl}}"], "path": ["users", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exercises (CRUD)",
+      "item": [
+        {
+          "name": "Listar ejercicios (usuario)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/exercises", "host": ["{{baseUrl}}"], "path": ["exercises"] }
+          }
+        },
+        {
+          "name": "Obtener ejercicio por id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/exercises/1", "host": ["{{baseUrl}}"], "path": ["exercises", "1"] }
+          }
+        },
+        {
+          "name": "Crear ejercicio (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Peso muerto\",\n  \"description\": \"Levantar la barra desde el suelo\",\n  \"muscleGroup\": \"back\",\n  \"sets\": 4,\n  \"reps\": 8\n}" },
+            "url": { "raw": "{{baseUrl}}/exercises", "host": ["{{baseUrl}}"], "path": ["exercises"] }
+          }
+        },
+        {
+          "name": "Crear ejercicio como usuario (debe dar 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Intento prohibido\",\n  \"description\": \"No deberia crearse\",\n  \"muscleGroup\": \"arms\",\n  \"sets\": 3,\n  \"reps\": 10\n}" },
+            "url": { "raw": "{{baseUrl}}/exercises", "host": ["{{baseUrl}}"], "path": ["exercises"] }
+          }
+        },
+        {
+          "name": "Actualizar ejercicio (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reps\": 12\n}" },
+            "url": { "raw": "{{baseUrl}}/exercises/1", "host": ["{{baseUrl}}"], "path": ["exercises", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar ejercicio (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/exercises/4", "host": ["{{baseUrl}}"], "path": ["exercises", "4"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Routines (CRUD + aprobacion)",
+      "item": [
+        {
+          "name": "Listar rutinas (usuario)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/routines", "host": ["{{baseUrl}}"], "path": ["routines"] }
+          }
+        },
+        {
+          "name": "Obtener rutina por id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/routines/1", "host": ["{{baseUrl}}"], "path": ["routines", "1"] }
+          }
+        },
+        {
+          "name": "Crear rutina (admin) - asignada al usuario 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rutina de fuerza\",\n  \"description\": \"Enfocada en pecho y espalda\",\n  \"difficulty\": \"intermediate\",\n  \"exerciseIds\": [1, 3],\n  \"assignedUserId\": 2\n}" },
+            "url": { "raw": "{{baseUrl}}/routines", "host": ["{{baseUrl}}"], "path": ["routines"] }
+          }
+        },
+        {
+          "name": "Crear rutina con usuario inexistente (debe dar 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rutina invalida\",\n  \"description\": \"Usuario que no existe\",\n  \"difficulty\": \"beginner\",\n  \"exerciseIds\": [1],\n  \"assignedUserId\": 9999\n}" },
+            "url": { "raw": "{{baseUrl}}/routines", "host": ["{{baseUrl}}"], "path": ["routines"] }
+          }
+        },
+        {
+          "name": "Actualizar rutina (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"difficulty\": \"advanced\"\n}" },
+            "url": { "raw": "{{baseUrl}}/routines/1", "host": ["{{baseUrl}}"], "path": ["routines", "1"] }
+          }
+        },
+        {
+          "name": "Aceptar rutina (usuario asignado)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/routines/1/accept", "host": ["{{baseUrl}}"], "path": ["routines", "1", "accept"] }
+          }
+        },
+        {
+          "name": "Rechazar rutina (usuario asignado)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/routines/1/reject", "host": ["{{baseUrl}}"], "path": ["routines", "1", "reject"] }
+          }
+        },
+        {
+          "name": "Aceptar rutina como admin (debe dar 403)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/routines/1/accept", "host": ["{{baseUrl}}"], "path": ["routines", "1", "accept"] }
+          }
+        },
+        {
+          "name": "Eliminar rutina (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/routines/2", "host": ["{{baseUrl}}"], "path": ["routines", "2"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories (CRUD)",
+      "item": [
+        {
+          "name": "Listar categorias (usuario)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Crear categoria (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Movilidad\",\n  \"description\": \"Ejercicios de movilidad articular\"\n}" },
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Actualizar categoria (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Descripcion actualizada\"\n}" },
+            "url": { "raw": "{{baseUrl}}/categories/1", "host": ["{{baseUrl}}"], "path": ["categories", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar categoria (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/categories/3", "host": ["{{baseUrl}}"], "path": ["categories", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Equipment (CRUD)",
+      "item": [
+        {
+          "name": "Listar equipamiento (usuario)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/equipment", "host": ["{{baseUrl}}"], "path": ["equipment"] }
+          }
+        },
+        {
+          "name": "Crear equipamiento (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Kettlebell\",\n  \"description\": \"Pesa rusa para entrenamiento funcional\"\n}" },
+            "url": { "raw": "{{baseUrl}}/equipment", "host": ["{{baseUrl}}"], "path": ["equipment"] }
+          }
+        },
+        {
+          "name": "Actualizar equipamiento (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Pesa rusa de 16kg\"\n}" },
+            "url": { "raw": "{{baseUrl}}/equipment/1", "host": ["{{baseUrl}}"], "path": ["equipment", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar equipamiento (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/equipment/3", "host": ["{{baseUrl}}"], "path": ["equipment", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Goals (CRUD)",
+      "item": [
+        {
+          "name": "Listar objetivos (usuario)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": { "raw": "{{baseUrl}}/goals", "host": ["{{baseUrl}}"], "path": ["goals"] }
+          }
+        },
+        {
+          "name": "Crear objetivo (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Mejorar resistencia\",\n  \"description\": \"Aumentar la capacidad cardiovascular\"\n}" },
+            "url": { "raw": "{{baseUrl}}/goals", "host": ["{{baseUrl}}"], "path": ["goals"] }
+          }
+        },
+        {
+          "name": "Actualizar objetivo (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Descripcion actualizada del objetivo\"\n}" },
+            "url": { "raw": "{{baseUrl}}/goals/1", "host": ["{{baseUrl}}"], "path": ["goals", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar objetivo (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/goals/3", "host": ["{{baseUrl}}"], "path": ["goals", "3"] }
+          }
+        }
+      ]
+    }
+  ]
+}
